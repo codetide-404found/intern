@@ -1,0 +1,20 @@
+<article class="card">
+  <a class="card-link" href="{{ item.get_absolute_url }}">
+    <span class="co"><span>{{ item.company }}</span>{% if item.is_sample %}<span class="tag">SAMPLE</span>{% endif %}</span>
+    <span class="role">{{ item.role }}</span>
+    <span class="meta">{{ item.area }} · {{ item.mode }}{% if item.duration %} · {{ item.duration }}{% endif %}</span>
+    <span class="chips">{% for p in item.programmes.all %}<span class="chip">{{ p.name }}</span>{% endfor %}</span>
+    {% if item.whatsapp_digits or item.email %}<span class="via">Apply by {% if item.whatsapp_digits %}WhatsApp{% endif %}{% if item.whatsapp_digits and item.email %} or {% endif %}{% if item.email %}email{% endif %}</span>{% endif %}
+    <span class="foot">
+      <span class="pay {{ item.pay|lower }}">{{ item.pay }}{% if item.pay_note %} · {{ item.pay_note }}{% endif %}</span>
+      <span class="due">
+        {% if item.deadline %}
+          {% with d=item.days_left %}
+            {% if d == 0 %}Closes today{% elif d == 1 %}Closes tomorrow{% else %}Closes {{ item.deadline|date:"j M" }}{% endif %}
+            {% if item.closing_soon and d > 1 %}<span class="soon">{{ d }} days left</span>{% elif d == 1 %}<span class="soon">1 day left</span>{% elif d == 0 %}<span class="soon">today</span>{% endif %}
+          {% endwith %}
+        {% else %}Open until filled{% endif %}
+      </span>
+    </span>
+  </a>
+</article>

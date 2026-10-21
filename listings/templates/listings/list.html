@@ -1,0 +1,69 @@
+{% extends 'listings/base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Accra{% if last_update %} · Updated {{ last_update|date:"j M Y" }}{% endif %}</p>
+  <h1>Internships in Accra, confirmed with each company</h1>
+  <p class="lede">Free for students. Each listing is checked with a named contact at the company before it appears here, and it comes down when the deadline passes.</p>
+</section>
+
+<form class="controls" method="get" action="{% url 'listings:list' %}" id="filters" aria-label="Find an internship">
+  <div class="field">
+    <label class="sr" for="q">Search internships</label>
+    <input id="q" name="q" type="search" placeholder="Search by role, company or programme" value="{{ f.q }}" autocomplete="off">
+  </div>
+  <div class="selects">
+    <label class="field" for="programme"><span>Programme</span>
+      <select id="programme" name="programme">
+        <option value="">All programmes</option>
+        {% for p in programmes %}<option value="{{ p.name }}"{% if p.name == f.programme %} selected{% endif %}>{{ p.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="field" for="area"><span>Area</span>
+      <select id="area" name="area">
+        <option value="">All of Accra</option>
+        {% for a in areas %}<option value="{{ a }}"{% if a == f.area %} selected{% endif %}>{{ a }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="field" for="pay"><span>Pay</span>
+      <select id="pay" name="pay">
+        <option value="">Any</option>
+        {% for value, label in pay_options %}<option value="{{ value }}"{% if value == f.pay %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+  </div>
+  <div class="res-head">
+    <p class="count" aria-live="polite"><b>{{ listings|length }}</b>{% if listings|length == 1 %}internship{% else %}internships{% endif %} {% if filtered %}match{% else %}open now{% endif %}</p>
+    <div class="sort">
+      <label class="lab" for="sort">Sort</label>
+      <select id="sort" name="sort">
+        <option value="close"{% if f.sort != 'new' %} selected{% endif %}>Closing soonest</option>
+        <option value="new"{% if f.sort == 'new' %} selected{% endif %}>Recently confirmed</option>
+      </select>
+      <button class="btn small" type="submit">Apply</button>
+    </div>
+  </div>
+</form>
+
+{% if has_samples %}
+<div class="notice">These are sample listings that show how the site works. They are removed as real openings are added.</div>
+{% endif %}
+
+<div class="grid">
+  {% for item in listings %}
+    {% include 'listings/_card.html' %}
+  {% empty %}
+    <div class="empty">
+      {% if filtered and total_open %}
+        <span>No internships match these filters.</span>
+        <a class="btn ghost" href="{% url 'listings:list' %}">Clear filters</a>
+      {% else %}
+        <span>No openings are listed right now. New ones are added every week, so check back soon.</span>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}<script src="{% static 'listings/filters.js' %}" defer></script>{% endblock %}

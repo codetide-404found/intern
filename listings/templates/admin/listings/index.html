@@ -1,0 +1,31 @@
+{% extends "admin/index.html" %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+  .attention{border:1px solid var(--message-warning-bg, #ffc);border-left:6px solid #e0a800;background:var(--message-warning-bg, #ffc);color:var(--body-fg);padding:14px 18px;margin:0 0 24px;border-radius:4px}
+  .attention h2{margin:0 0 8px;font-size:15px}
+  .attention ul{margin:0;padding-left:18px}
+  .attention li{margin:4px 0}
+</style>
+{% endblock %}
+
+{% block content %}
+{% if attention.messages or attention.expiring %}
+<div class="attention" role="alert">
+  <h2>Needs attention</h2>
+  <ul>
+    {% for m in attention.messages %}<li>{{ m }}</li>{% endfor %}
+    {% if attention.expiring %}
+    <li>These listings close within 7 days. Extend the deadline if the company is still hiring, or add replacements:
+      <ul>
+        {% for i in attention.expiring %}
+        <li><a href="{% url 'admin:listings_internship_change' i.pk %}">{{ i.role }} at {{ i.company }}</a>, closes {{ i.deadline|date:"j M" }}</li>
+        {% endfor %}
+      </ul>
+    </li>
+    {% endif %}
+  </ul>
+</div>
+{% endif %}
+{{ block.super }}
+{% endblock %}

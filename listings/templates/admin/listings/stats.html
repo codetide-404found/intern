@@ -1,0 +1,108 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+  .st-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:8px 0 22px}
+  .st-card{border:1px solid var(--hairline-color,#ddd);border-radius:8px;padding:14px 16px;background:var(--body-bg,#fff)}
+  .st-card h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--body-quiet-color,#666)}
+  .st-big{font-size:30px;font-weight:700;line-height:1.1;color:var(--body-fg,#222)}
+  .st-sub{font-size:12px;color:var(--body-quiet-color,#666);margin-top:4px}
+  .st-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+  .st-panel h2{margin:0 0 8px;font-size:15px}
+  .st-panel table{width:100%}
+  .st-bar{display:block;height:10px;border-radius:5px;background:var(--primary,#417690);min-width:2px}
+  .st-bartd{width:45%}
+  .st-note{color:var(--body-quiet-color,#666);font-size:13px;max-width:70ch;margin:0 0 18px}
+  .st-empty{color:var(--body-quiet-color,#666);font-size:13px;padding:6px 0}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Home</a> &rsaquo; <a href="{% url 'admin:app_list' app_label='listings' %}">Listings</a> &rsaquo; Site stats</div>
+{% endblock %}
+
+{% block content %}
+<p class="st-note">
+  <b>Visitors</b> are counted once per day per device, so these are estimates, not exact people.
+  A <b>visit</b> is one visitor on one day; a <b>page view</b> is every page they open.
+  Your own visits (when logged in to the admin), search engines and link previews are not counted.
+  No names, emails or IP addresses are stored.
+  {% if s.since %}Counting since {{ s.since|date:"j M Y" }}.{% else %}Nothing has been counted yet. Open the public site in a private window to see the first visit appear here.{% endif %}
+</p>
+
+<div class="st-cards">
+  <div class="st-card"><h3>Today</h3><div class="st-big">{{ s.today.visitors }}</div><div class="st-sub">visitors · {{ s.today.views }} page views</div></div>
+  <div class="st-card"><h3>Last 7 days</h3><div class="st-big">{{ s.last7.visits }}</div><div class="st-sub">visits · {{ s.last7.views }} page views</div></div>
+  <div class="st-card"><h3>Last 30 days</h3><div class="st-big">{{ s.last30.visits }}</div><div class="st-sub">visits · {{ s.last30.views }} page views</div></div>
+  <div class="st-card"><h3>All time</h3><div class="st-big">{{ s.all.visits }}</div><div class="st-sub">visits · {{ s.all.views }} page views</div></div>
+  <div class="st-card"><h3>Open internships</h3><div class="st-big">{{ s.open_now }}</div><div class="st-sub">listed on the site now</div></div>
+</div>
+
+<div class="st-grid">
+  <section class="st-panel module">
+    <h2>Visitors per day, last 14 days</h2>
+    <table>
+      <thead><tr><th>Day</th><th class="num">Visitors</th><th class="num">Views</th><th class="st-bartd"></th></tr></thead>
+      <tbody>
+      {% for d in s.series reversed %}
+        <tr><td>{{ d.day|date:"D j M" }}</td><td class="num">{{ d.visitors }}</td><td class="num">{{ d.views }}</td>
+          <td class="st-bartd"><span class="st-bar" style="width:{{ d.pct }}%"></span></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="st-panel module">
+    <h2>Most viewed internships, last 30 days</h2>
+    {% if s.top_internships %}
+    <table>
+      <thead><tr><th>Internship</th><th class="num">Views</th><th class="num">Visits</th></tr></thead>
+      <tbody>
+      {% for r in s.top_internships %}
+        <tr><td><a href="{% url 'admin:listings_internship_change' r.internship %}">{{ r.internship__role }}</a><br><small>{{ r.internship__company }}</small></td>
+          <td class="num">{{ r.views }}</td><td class="num">{{ r.visits }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="st-empty">No internship pages have been opened yet.</p>{% endif %}
+  </section>
+
+  <section class="st-panel module">
+    <h2>Programmes students filtered by, last 30 days</h2>
+    {% if s.top_programmes %}
+    <table><thead><tr><th>Programme</th><th class="num">Times used</th></tr></thead><tbody>
+      {% for r in s.top_programmes %}<tr><td>{{ r.programme }}</td><td class="num">{{ r.n }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="st-empty">No programme filter used yet.</p>{% endif %}
+  </section>
+
+  <section class="st-panel module">
+    <h2>Areas students filtered by, last 30 days</h2>
+    {% if s.top_areas %}
+    <table><thead><tr><th>Area</th><th class="num">Times used</th></tr></thead><tbody>
+      {% for r in s.top_areas %}<tr><td>{{ r.area }}</td><td class="num">{{ r.n }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="st-empty">No area filter used yet.</p>{% endif %}
+  </section>
+
+  <section class="st-panel module">
+    <h2>What students search for, last 30 days</h2>
+    {% if s.top_searches %}
+    <table><thead><tr><th>Search</th><th class="num">Times</th><th class="num">Results</th></tr></thead><tbody>
+      {% for r in s.top_searches %}<tr><td>{{ r.search }}</td><td class="num">{{ r.n }}</td><td class="num">{{ r.fewest }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="st-empty">No searches yet.</p>{% endif %}
+  </section>
+
+  <section class="st-panel module">
+    <h2>Searches that found nothing</h2>
+    {% if s.no_result_searches %}
+    <p class="st-note">Students wanted these and the site had none. Good targets for your next company visits.</p>
+    <table><thead><tr><th>Search</th><th class="num">Times</th></tr></thead><tbody>
+      {% for r in s.no_result_searches %}<tr><td>{{ r.search }}</td><td class="num">{{ r.n }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="st-empty">None so far.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

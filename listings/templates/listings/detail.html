@@ -1,0 +1,72 @@
+{% extends 'listings/base.html' %}
+
+{% block title %}{{ item.role }} at {{ item.company }} · Intern Accra{% endblock %}
+{% block description %}{{ item.role }} internship at {{ item.company }}, {{ item.area }}. {{ item.pay }}{% if item.deadline %}. Apply by {{ item.deadline|date:"j M Y" }}{% endif %}.{% endblock %}
+{% block og_title %}{{ item.role }} at {{ item.company }}{% endblock %}
+{% block og_description %}{{ item.area }} · {{ item.pay }}{% if item.deadline %} · Apply by {{ item.deadline|date:"j M Y" }}{% endif %}{% endblock %}
+
+{% block content %}
+<nav class="crumb"><a href="{% url 'listings:list' %}">&larr; All internships</a></nav>
+
+<article class="card open detail-page">
+  <div class="card-top">
+    <span class="co"><span>{{ item.company }}</span>{% if item.is_sample %}<span class="tag">SAMPLE</span>{% endif %}</span>
+    <h1 class="role">{{ item.role }}</h1>
+    <span class="chips">{% for p in item.programmes.all %}<span class="chip">{{ p.name }}</span>{% endfor %}</span>
+    <span class="foot">
+      <span class="pay {{ item.pay|lower }}">{{ item.pay }}{% if item.pay_note %} · {{ item.pay_note }}{% endif %}</span>
+      {% if closed %}<span class="due"><span class="closed">Closed</span></span>
+      {% elif item.deadline %}<span class="due">Closes {{ item.deadline|date:"j M Y" }}{% if item.closing_soon %}<span class="soon">{{ item.days_left }} day{{ item.days_left|pluralize }} left</span>{% endif %}</span>
+      {% else %}<span class="due">Open until filled</span>{% endif %}
+    </span>
+  </div>
+
+  <div class="detail">
+    <dl class="facts">
+      {% if item.slots %}<div><dt>Slots</dt><dd>{{ item.slots }}</dd></div>{% endif %}
+      {% if item.duration %}<div><dt>Duration</dt><dd>{{ item.duration }}</dd></div>{% endif %}
+      {% if item.start_date %}<div><dt>Starts</dt><dd>{{ item.start_date|date:"j M Y" }}</dd></div>{% endif %}
+      <div><dt>Where</dt><dd>{{ item.area }}, {{ item.mode }}</dd></div>
+    </dl>
+
+    {% if item.about %}<div><h2>About the role</h2><p>{{ item.about|linebreaksbr }}</p></div>{% endif %}
+    {% if item.requirements %}<div><h2>Who can apply</h2><p>{{ item.requirements|linebreaksbr }}</p></div>{% endif %}
+
+    <div class="apply">
+      <h2>How to apply</h2>
+      {% if closed %}
+        <p>This internship has closed. <a href="{% url 'listings:list' %}">See open internships</a>.</p>
+      {% else %}
+        {% if item.how_to_apply %}<p>{{ item.how_to_apply }}</p>{% endif %}
+        {% if item.whatsapp_digits or item.email %}
+        <div class="apply-options">
+          {% if item.whatsapp_digits %}
+          <div class="apply-opt">
+            <a class="btn" target="_blank" rel="noopener" href="https://wa.me/{{ item.whatsapp_digits }}?text={{ wa_text|urlencode:'' }}">Apply on WhatsApp</a>
+            <span class="addr">{{ item.whatsapp_display }}</span>
+          </div>
+          {% endif %}
+          {% if item.email %}
+          <div class="apply-opt">
+            <a class="btn" href="mailto:{{ item.email }}?subject={{ email_subject|urlencode:'' }}&amp;body={{ email_body|urlencode:'' }}">Apply by email</a>
+            <span class="addr" id="email-addr">{{ item.email }}</span>
+            <span class="alt-links">
+              No mail app?
+              <a target="_blank" rel="noopener" href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to={{ item.email|urlencode:'' }}&amp;su={{ email_subject|urlencode:'' }}&amp;body={{ email_body|urlencode:'' }}">Open in Gmail</a>
+              <span aria-hidden="true">·</span>
+              <button class="linklike" type="button" data-copy="{{ item.email }}" data-target="email-addr">Copy address</button>
+            </span>
+          </div>
+          {% endif %}
+        </div>
+        {% elif not item.how_to_apply %}
+        <p>Ask the company directly, using the details on this page.</p>
+        {% endif %}
+      {% endif %}
+      <span class="confirmed">Confirmed with the company on {{ item.confirmed_on|date:"j M Y" }}</span>
+    </div>
+  </div>
+</article>
+{% endblock %}
+
+{% block scripts %}{% load static %}<script src="{% static 'listings/copy.js' %}" defer></script>{% endblock %}
